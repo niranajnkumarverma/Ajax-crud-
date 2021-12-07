@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-4">
+                <h1>Add New User</h1>
+                <form action="{% url 'add_new' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" name="fullname" id="name" aria-describedby="emailHelp"required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email address</label>
+                        <input type="email" class="form-control" name="email" id="email" aria-describedby="emailHelp"required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="mobile" class="form-label">Mobile</label>
+                        <input type="text" class="form-control" name="mobile" id="mobile"required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </form>
+            </div>
+            <div class="col-8">
+                <h1>All Users</h1>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#id</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Mobile</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in user_data %}
+                        <tr>
+                            <td>{{data.id}}</td>
+                            <td>{{data.Name}}</td>
+                            <td>{{data.Email}}</td>
+                            <td>{{data.Mobile}}</td>
+                            <td>
+                                <a href="{% url 'update_data' pk=data.pk %}" class="btn btn-sm btn-primary">Update</a>
+                                <a href="{% url 'delete_data' pk=data.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Bundle with Popper -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj"
+        crossorigin="anonymous"></script>
+
+    <script>
+        $(document).ready(function () {
+
+            $('form').submit(function(e) {
+                e.preventDefault();
+                var form_ele = $(this);
+                ajax_submit(form_ele);
+            });
+
+            function ajax_submit(form) {
+                var data = {
+                    'fullname': form.find('input[name="fullname"]').val(),
+                    'email': form.find('input[name="email"]').val(),
+                    'mobile': form.find('input[name="mobile"]').val(),
+                    'csrfmiddlewaretoken': "{{csrf_token}}"
+                }
+                $.ajax({
+                    type: "POST",
+                    url: form.attr('action'),
+                    data: data,
+                    success: function (response_data) {
+                        alert('Data added successfully!')
+                        var html_table_data = '';
+                        for (index in response_data.user_data) {
+                            user_data = response_data.user_data[index];
+
+                            html_table_data += `<tr><td>${user_data.id}</td>
+                            <td>${user_data.Name}</td>
+                            <td>${user_data.Email}</td>
+                            <td>${user_data.Mobile}</td>
+                            <td>
+                                <a href="update_data/${user_data.id}/" class="btn btn-sm btn-primary">Update</a>
+                                <a href="delete_data/${user_data.id}/" class="btn btn-sm btn-danger">Delete</a>
+                            </td>
+                            </tr>`;
+                            console.log(user_data)
+                        }
+                        $('tbody').html(html_table_data)
+                        //console.table(response_data.user_data)
+                    },
+                    error: function (e) {
+                        document.write(e.responseText);
+                        console.log("ERROR : ", e);
+                    },
+                });
+            }
+        })
+    </script>
+</body>
+
+</html>
